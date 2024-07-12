@@ -1,0 +1,169 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:7890
+  description: Login,Register,Logout,ForgotPassword apis
+paths:
+  /register:
+    post:
+      tags:
+      - login-controller
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequestDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RegisterResponseDto"
+  /logout:
+    post:
+      tags:
+      - login-controller
+      operationId: userLogout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /login:
+    post:
+      tags:
+      - login-controller
+      operationId: userLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /forgotPassword:
+    post:
+      tags:
+      - login-controller
+      operationId: forgotPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPassword"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /addTransaction:
+    post:
+      tags:
+      - transaction-controller
+      operationId: addTransaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionDto"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TransactionDto"
+components:
+  schemas:
+    RegisterRequestDto:
+      required:
+      - emailId
+      - fullName
+      - mobileNumber
+      - password
+      type: object
+      properties:
+        fullName:
+          type: string
+        mobileNumber:
+          pattern: "^\\d{10}$"
+          type: string
+        emailId:
+          type: string
+        password:
+          type: array
+          items:
+            type: string
+    RegisterResponseDto:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        fullName:
+          type: string
+        mobileNumber:
+          type: string
+        emailId:
+          type: string
+    LoginDto:
+      required:
+      - emailId
+      - password
+      type: object
+      properties:
+        emailId:
+          type: string
+        password:
+          type: array
+          items:
+            type: string
+    ForgotPassword:
+      required:
+      - confirmPassword
+      - emailId
+      - newPassword
+      type: object
+      properties:
+        emailId:
+          type: string
+        newPassword:
+          type: array
+          items:
+            type: string
+        confirmPassword:
+          type: array
+          items:
+            type: string
+    TransactionDto:
+      type: object
+      properties:
+        amount:
+          type: integer
+          format: int64
+        userId:
+          type: integer
+          format: int64
