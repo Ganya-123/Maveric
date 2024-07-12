@@ -1,13 +1,23 @@
 package com.maveric.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.maveric.constants.Constants;
 import com.maveric.dto.ForgotPassword;
 import com.maveric.dto.LoginDto;
 import com.maveric.dto.RegisterRequestDto;
-import com.maveric.dto.RegisterResponse;
+import com.maveric.dto.RegisterResponseDto;
 import com.maveric.exceptions.EmailAlreadyExistsException;
 import com.maveric.exceptions.EmailNotFoundException;
+import com.maveric.exceptions.PasswordRepetitionException;
+import com.maveric.exceptions.PasswordsNotMatchingException;
 import com.maveric.service.RegisterService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,142 +25,216 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(LoginController.class)
 class LoginControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @MockBean
-    private RegisterService registerService;
+  @MockBean private RegisterService registerService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
+  private RegisterRequestDto registerRequestDto;
+  private LoginDto loginDto;
+  private ForgotPassword forgotPassword;
 
-    @Test
-    void registerUser() throws Exception {
-        RegisterRequestDto requestDto = new RegisterRequestDto();
-        requestDto.setFullName("John Doe");
-        requestDto.setMobileNumber("1234567890");
-        requestDto.setEmail("test@example.com");
-        requestDto.setPassword("password123".toCharArray());
+  @BeforeEach
+  void setUp() {
+    registerRequestDto = new RegisterRequestDto();
+    registerRequestDto.setFullName("John Doe");
+    registerRequestDto.setMobileNumber("1234567890");
+    registerRequestDto.setEmailId("test@example.com");
+    registerRequestDto.setPassword("password123".toCharArray());
 
-        RegisterResponse responseDto = new RegisterResponse();
-        responseDto.setUserId(1L);
-        responseDto.setFullName("John Doe");
-        responseDto.setMobileNumber("1234567890");
-        responseDto.setEmail("test@example.com");
+    loginDto = new LoginDto();
+    loginDto.setEmailId("test@example.com");
+    loginDto.setPassword("password123".toCharArray());
 
-        when(registerService.registerUser(any(RegisterRequestDto.class))).thenReturn(responseDto);
+    forgotPassword = new ForgotPassword();
+    forgotPassword.setEmailId("test@example.com");
+    forgotPassword.setNewPassword("newpassword123".toCharArray());
+    forgotPassword.setConfirmPassword("newpassword123".toCharArray());
+  }
 
-        mockMvc.perform(post("/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(1L))
-                .andExpect(jsonPath("$.fullName").value("John Doe"))
-                .andExpect(jsonPath("$.mobileNumber").value("1234567890"))
-                .andExpect(jsonPath("$.email").value("test@example.com"));
-    }
+  @Test
+  void registerUser() throws Exception {
+    RegisterResponseDto responseDto = new RegisterResponseDto();
+    responseDto.setUserId(1L);
+    responseDto.setFullName("John Doe");
+    responseDto.setMobileNumber("1234567890");
+    responseDto.setEmailId("test@example.com");
 
-    @Test
-    void registerUserWithExistingEmail() throws Exception {
-        RegisterRequestDto requestDto = new RegisterRequestDto();
-        requestDto.setFullName("John Doe");
-        requestDto.setMobileNumber("1234567890");
-        requestDto.setEmail("existing@example.com");
-        requestDto.setPassword("password123".toCharArray());
+    when(registerService.registerUser(any(RegisterRequestDto.class))).thenReturn(responseDto);
 
-        when(registerService.registerUser(any(RegisterRequestDto.class))).thenThrow(new EmailAlreadyExistsException("Email already exists"));
+    mockMvc
+        .perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequestDto)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.userId").value(1L))
+        .andExpect(jsonPath("$.fullName").value("John Doe"))
+        .andExpect(jsonPath("$.mobileNumber").value("1234567890"))
+        .andExpect(jsonPath("$.emailId").value("test@example.com"));
+  }
 
-        mockMvc.perform(post("/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Email already exists"));
-    }
+  @Test
+  void registerUserWithExistingEmail() throws Exception {
 
-    @Test
-    void loginUser() throws Exception {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("test@example.com");
-        loginDto.setPassword("password123".toCharArray());
+    when(registerService.registerUser(any(RegisterRequestDto.class)))
+        .thenThrow(new EmailAlreadyExistsException("Email already exists"));
 
-        when(registerService.loginUser(any(LoginDto.class))).thenReturn("Login successful");
+    mockMvc
+        .perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequestDto)))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message").value("Email already exists"));
+  }
 
-        mockMvc.perform(post("/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDto)))
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$").value("Login successful"));
-    }
+  @Test
+  void loginUser() throws Exception {
 
+    when(registerService.loginUser(any(LoginDto.class))).thenReturn("Login successful");
 
-    @Test
-    void loginUserWithInvalidEmail() throws Exception {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("invalid@example.com");
-        loginDto.setPassword("password123".toCharArray());
+    mockMvc
+        .perform(
+            post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)))
+        .andExpect(status().isAccepted())
+        .andExpect(jsonPath("$").value("Login successful"));
+  }
 
-        when(registerService.loginUser(any(LoginDto.class))).thenThrow(new EmailNotFoundException("Email Id not found"));
+  @Test
+  void loginUserWithInvalidEmail() throws Exception {
 
-        mockMvc.perform(post("/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDto)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Email Id not found"));
-    }
+    when(registerService.loginUser(any(LoginDto.class)))
+        .thenThrow(new EmailNotFoundException("Email Id not found"));
 
-    @Test
-    void loginUserWithIncorrectPassword() throws Exception {
-        LoginDto loginDto = new LoginDto();
-        loginDto.setEmail("test@example.com");
-        loginDto.setPassword("wrongpassword".toCharArray());
+    mockMvc
+        .perform(
+            post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Email Id not found"));
+  }
 
-        when(registerService.loginUser(any(LoginDto.class))).thenReturn("Login unsuccessful");
+  @Test
+  void loginUserWithIncorrectPassword() throws Exception {
 
-        mockMvc.perform(post("/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginDto)))
-                .andExpect(jsonPath("$").value("Login unsuccessful"));
-    }
+    when(registerService.loginUser(any(LoginDto.class))).thenReturn("Login unsuccessful");
 
-    @Test
-    void forgotPassword() throws Exception {
-        ForgotPassword forgotPassword = new ForgotPassword();
-        forgotPassword.setEmail("test@example.com");
-        forgotPassword.setNewpasswordone("newpassword123".toCharArray());
-        forgotPassword.setNewpasswordtwo("newpassword123".toCharArray());
+    mockMvc
+        .perform(
+            post("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)))
+        .andExpect(jsonPath("$").value("Login unsuccessful"));
+  }
 
-        when(registerService.forgotPassword(any(ForgotPassword.class))).thenReturn("Password change successful");
+  @Test
+  void forgotPassword() throws Exception {
 
-        mockMvc.perform(post("/forgotPassword")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(forgotPassword)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$").value("Password change successful"));
-    }
+    when(registerService.forgotPassword(any(ForgotPassword.class)))
+        .thenReturn("Password change successful");
 
+    mockMvc
+        .perform(
+            post("/forgotPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(forgotPassword)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$").value("Password change successful"));
+  }
 
-    @Test
-    void forgotPasswordWithEmailNotFound() throws Exception {
-        ForgotPassword forgotPassword = new ForgotPassword();
-        forgotPassword.setEmail("notfound@example.com");
-        forgotPassword.setNewpasswordone("newpassword123".toCharArray());
-        forgotPassword.setNewpasswordtwo("newpassword123".toCharArray());
+  @Test
+  void forgotPasswordWithEmailNotFound() throws Exception {
+    ;
 
-        when(registerService.forgotPassword(any(ForgotPassword.class))).thenThrow(new EmailNotFoundException("Email Id not found"));
+    when(registerService.forgotPassword(any(ForgotPassword.class)))
+        .thenThrow(new EmailNotFoundException("Email Id not found"));
 
-        mockMvc.perform(post("/forgotPassword")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(forgotPassword)))
-                .andExpect(jsonPath("$.message").value("Email Id not found"));
-    }
+    mockMvc
+        .perform(
+            post("/forgotPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(forgotPassword)))
+        .andExpect(jsonPath("$.message").value("Email Id not found"));
+  }
 
+  @Test
+  void forgotPasswordWithPasswordRepitition() throws Exception {
+
+    when(registerService.forgotPassword(any(ForgotPassword.class)))
+        .thenThrow(
+            new PasswordRepetitionException("New password matches with one of the old passwords"));
+
+    mockMvc
+        .perform(
+            post("/forgotPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(forgotPassword)))
+        .andExpect(
+            jsonPath("$.message").value("New password matches with one of the old passwords"));
+  }
+
+  @Test
+  void forgotPasswordWithPasswordRepitition2() throws Exception {
+
+    when(registerService.forgotPassword(any(ForgotPassword.class)))
+        .thenThrow(
+            new PasswordRepetitionException(
+                "New password matches with one of the last three old passwords"));
+
+    mockMvc
+        .perform(
+            post("/forgotPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(forgotPassword)))
+        .andExpect(
+            jsonPath("$.message")
+                .value("New password matches with one of the last three old passwords"));
+  }
+
+  @Test
+  void logoutUser() throws Exception {
+    when(registerService.logoutUser(any(LoginDto.class))).thenReturn(Constants.LOGGED_OUT);
+
+    mockMvc
+        .perform(
+            post("/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)))
+        .andExpect(jsonPath("$").value(Constants.LOGGED_OUT));
+  }
+
+  @Test
+  void logoutUser_failure1() throws Exception {
+
+    when(registerService.logoutUser(any(LoginDto.class)))
+        .thenThrow(new PasswordsNotMatchingException("Passwords are not matching"));
+
+    mockMvc
+        .perform(
+            post("/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)))
+        .andExpect(jsonPath("$.message").value("Passwords are not matching"));
+  }
+
+  @Test
+  void logoutUserFailure2() throws Exception {
+
+    when(registerService.logoutUser(any(LoginDto.class)))
+        .thenReturn(Constants.USER_ALREADY_LOGGED_OUT);
+
+    mockMvc
+        .perform(
+            post("/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginDto)))
+        .andExpect(jsonPath("$").value(Constants.USER_ALREADY_LOGGED_OUT));
+  }
 }
