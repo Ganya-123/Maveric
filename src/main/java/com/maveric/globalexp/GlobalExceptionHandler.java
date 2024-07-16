@@ -40,25 +40,11 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDto);
   }
 
-  @ExceptionHandler(PasswordNotFoundException.class)
-  public ResponseEntity<ErrorDto> passwordsNotFound(PasswordNotFoundException ex) {
-    ErrorDto errorDto =
-        new ErrorDto(HttpStatus.NOT_FOUND, ex.getMessage(), Collections.emptyList());
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDto);
-  }
-
   @ExceptionHandler(UserIdNotFoundException.class)
   public ResponseEntity<ErrorDto> userIdNotFound(UserIdNotFoundException ex) {
     ErrorDto errorDto =
         new ErrorDto(HttpStatus.NOT_FOUND, ex.getMessage(), Collections.emptyList());
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDto);
-  }
-
-  @ExceptionHandler(PasswordEmptyException.class)
-  public ResponseEntity<ErrorDto> handlePasswordEmptyException(PasswordEmptyException ex) {
-    ErrorDto errorDto =
-        new ErrorDto(HttpStatus.NO_CONTENT, ex.getMessage(), Collections.emptyList());
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).body(errorDto);
   }
 
   @ExceptionHandler(UserNotLoggedInException.class)

@@ -15,6 +15,7 @@ import com.maveric.dto.RegisterResponseDto;
 import com.maveric.exceptions.EmailAlreadyExistsException;
 import com.maveric.exceptions.EmailNotFoundException;
 import com.maveric.exceptions.PasswordRepetitionException;
+import com.maveric.exceptions.PasswordsNotMatchingException;
 import com.maveric.service.RegisterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -208,6 +209,20 @@ class LoginControllerIntegrationTest {
         .andExpect(
             jsonPath("$.message")
                 .value("New password matches with one of the last three old passwords"));
+  }
+
+  @Test
+  void forgotPassword_Not_Matching() throws Exception {
+
+    when(registerService.forgotPassword(any(ForgotPassword.class)))
+        .thenThrow(new PasswordsNotMatchingException(Constants.PASSWORDS_NOT_MATCHING));
+
+    mockMvc
+        .perform(
+            post("/forgotPassword")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(forgotPassword)))
+        .andExpect(jsonPath("$.message").value(Constants.PASSWORDS_NOT_MATCHING));
   }
 
   @Test
