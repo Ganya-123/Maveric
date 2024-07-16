@@ -14,7 +14,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +23,6 @@ public class RegisterService {
   private final ModelMapper mapper;
   private final EncryptDecrypt encryptDecrypt;
 
-  @Transactional
   public RegisterResponseDto registerUser(RegisterRequestDto request) {
     repo.findByEmailIdAndStatusActive(request.getEmailId())
         .ifPresent(
@@ -32,14 +30,14 @@ public class RegisterService {
               throw new EmailAlreadyExistsException("Email already exists");
             });
     User user = mapper.map(request, User.class);
-    user.setStatus(Constants.ACTIVE);
+    user.setPasswordStatus(Constants.ACTIVE);
     user.setSession(Constants.INACTIVE);
     user.setPassword(encryptDecrypt.encode(request.getPassword()).toCharArray());
     User userResponse = repo.save(user);
     return mapper.map(userResponse, RegisterResponseDto.class);
   }
 
-  @Transactional
+
   public String loginUser(LoginDto loginDto) {
     User user =
         repo.findByEmailIdAndStatusActive(loginDto.getEmailId())
@@ -56,7 +54,7 @@ public class RegisterService {
     }
   }
 
-  @Transactional
+
   public String forgotPassword(ForgotPassword forgotPassword) {
     User user =
         repo.findByEmailIdAndStatusActive(forgotPassword.getEmailId())
@@ -72,13 +70,13 @@ public class RegisterService {
     }
 
     checkAgainstPasswords(forgotPassword.getNewPassword(), users);
-    user.setStatus(Constants.INACTIVE);
+    user.setPasswordStatus(Constants.INACTIVE);
     repo.save(user);
 
     User newUser = new User();
     newUser.setEmailId(user.getEmailId());
     newUser.setPassword(encryptDecrypt.encode(forgotPassword.getNewPassword()).toCharArray());
-    newUser.setStatus(Constants.ACTIVE);
+    newUser.setPasswordStatus(Constants.ACTIVE);
     newUser.setFullName(user.getFullName());
     newUser.setSession(Constants.INACTIVE);
     newUser.setPassword(user.getPassword());
@@ -87,16 +85,13 @@ public class RegisterService {
     return Constants.PASSWORD_CHANGE_SUCCESSFUL;
   }
 
-  @Transactional
-  public String logoutUser(LoginDto loginDto) {
+
+  public String logoutUser(String emailId) {
     User user =
-        repo.findByEmailIdAndStatusActive(loginDto.getEmailId())
+        repo.findByEmailIdAndStatusActive(emailId)
             .orElseThrow(() -> new EmailNotFoundException(Constants.EMAIL_ID_NOT_FOUND));
 
-    char[] decodedPassword = encryptDecrypt.decode(new String(user.getPassword()));
-    if (!Arrays.equals(loginDto.getPassword(), decodedPassword)) {
-      throw new PasswordsNotMatchingException(Constants.PASSWORDS_NOT_MATCHING);
-    } else if (user.getSession().equals(Constants.ACTIVE)) {
+    if (user.getSession().equals(Constants.ACTIVE)) {
       user.setSession(Constants.INACTIVE);
       repo.save(user);
       return Constants.LOGGED_OUT;

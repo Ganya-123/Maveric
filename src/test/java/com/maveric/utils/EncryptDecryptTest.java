@@ -46,21 +46,19 @@ class EncryptDecryptTest {
 
   @Test
   void testNullInputEncode() {
-    Exception exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> {
-              encryptDecrypt.encode(null);
-            });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          encryptDecrypt.encode(null);
+        });
   }
 
   @Test
   void testNullInputDecode() {
-    Exception exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> {
-              encryptDecrypt.decode(null);
-            });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          encryptDecrypt.decode(null);
+        });
   }
 }

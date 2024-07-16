@@ -11,7 +11,6 @@ import com.maveric.repo.TransactionRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +21,6 @@ public class TransactionService {
 
   private final ModelMapper mapper;
 
-  @Transactional
   public TransactionDto addTransaction(TransactionDto request) {
     User user =
         registerRepo

@@ -15,7 +15,6 @@ import com.maveric.dto.RegisterResponseDto;
 import com.maveric.exceptions.EmailAlreadyExistsException;
 import com.maveric.exceptions.EmailNotFoundException;
 import com.maveric.exceptions.PasswordRepetitionException;
-import com.maveric.exceptions.PasswordsNotMatchingException;
 import com.maveric.service.RegisterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,6 +89,19 @@ class LoginControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(registerRequestDto)))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.message").value("Email already exists"));
+  }
+
+  @Test
+  void registerUser_MappingError() throws Exception {
+
+    when(registerService.registerUser(registerRequestDto))
+        .thenThrow(new RuntimeException("Mapping error"));
+    mockMvc
+        .perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequestDto)))
+        .andExpect(status().isInternalServerError());
   }
 
   @Test
@@ -200,41 +212,27 @@ class LoginControllerIntegrationTest {
 
   @Test
   void logoutUser() throws Exception {
-    when(registerService.logoutUser(any(LoginDto.class))).thenReturn(Constants.LOGGED_OUT);
+
+    when(registerService.logoutUser(loginDto.getEmailId())).thenReturn(Constants.LOGGED_OUT);
 
     mockMvc
         .perform(
-            post("/logout")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginDto)))
-        .andExpect(jsonPath("$").value(Constants.LOGGED_OUT));
+            post("/logout/{emailId}", loginDto.getEmailId())
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").value(Constants.LOGGED_OUT))
+        .andExpect(status().isOk());
   }
 
   @Test
-  void logoutUser_failure1() throws Exception {
+  void logoutUserFailure1() throws Exception {
 
-    when(registerService.logoutUser(any(LoginDto.class)))
-        .thenThrow(new PasswordsNotMatchingException("Passwords are not matching"));
-
-    mockMvc
-        .perform(
-            post("/logout")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginDto)))
-        .andExpect(jsonPath("$.message").value("Passwords are not matching"));
-  }
-
-  @Test
-  void logoutUserFailure2() throws Exception {
-
-    when(registerService.logoutUser(any(LoginDto.class)))
+    when(registerService.logoutUser(loginDto.getEmailId()))
         .thenReturn(Constants.USER_ALREADY_LOGGED_OUT);
 
     mockMvc
         .perform(
-            post("/logout")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginDto)))
+            post("/logout/{emailId}", loginDto.getEmailId())
+                .contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$").value(Constants.USER_ALREADY_LOGGED_OUT));
   }
 }

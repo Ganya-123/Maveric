@@ -26,24 +26,9 @@ public class User {
   @Column(nullable = false)
   private char[] password;
 
-  private String status;
+  private String passwordStatus;
   private String session;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<Transaction> transactions;
-
-  public User(
-      String fullName,
-      String mobileNumber,
-      String emailId,
-      char[] password,
-      String status,
-      String session) {
-    this.fullName = fullName;
-    this.mobileNumber = mobileNumber;
-    this.emailId = emailId;
-    this.password = password;
-    this.status = status;
-    this.session = session;
-  }
 }

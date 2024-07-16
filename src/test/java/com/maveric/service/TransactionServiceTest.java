@@ -40,7 +40,7 @@ class TransactionServiceTest {
     user.setFullName("Ganya HT");
     user.setEmailId("g@gmail.com");
     user.setPassword("password".toCharArray());
-    user.setStatus(Constants.ACTIVE);
+    user.setPasswordStatus(Constants.ACTIVE);
     user.setSession(Constants.ACTIVE);
   }
 
@@ -88,7 +88,7 @@ class TransactionServiceTest {
     user.setFullName("Ganya HT");
     user.setEmailId("g@gmail.com");
     user.setPassword("password".toCharArray());
-    user.setStatus(Constants.ACTIVE);
+    user.setPasswordStatus(Constants.ACTIVE);
     user.setSession(Constants.INACTIVE);
 
     Transaction transaction = new Transaction(1L, 500L, user);

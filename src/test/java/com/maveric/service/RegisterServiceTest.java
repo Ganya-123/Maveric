@@ -52,31 +52,31 @@ class RegisterServiceTest {
 
   @BeforeEach
   void setUp() {
-    user1 =
-        new User(
-            "ABHI",
-            "1234567890",
-            "a@example.com",
-            "password".toCharArray(),
-            Constants.INACTIVE,
-            Constants.INACTIVE);
 
-    User user2 =
-        new User(
-            "BHARAT",
-            "9876543210",
-            "b@example.com",
-            "securepwd".toCharArray(),
-            Constants.INACTIVE,
-            Constants.INACTIVE);
-    user3 =
-        new User(
-            "CAT",
-            "9876543210",
-            "c@example.com",
-            "oldPassword3".toCharArray(),
-            Constants.ACTIVE,
-            Constants.ACTIVE);
+    user1 = new User();
+    user1.setFullName("ABHI");
+    user1.setMobileNumber("1234567890");
+    user1.setEmailId("a@example.com");
+    user1.setPassword("password".toCharArray());
+    user1.setPasswordStatus(Constants.INACTIVE);
+    user1.setSession(Constants.INACTIVE);
+
+    User user2 = new User();
+    user2.setFullName("BHARAT");
+    user2.setMobileNumber("9876543210");
+    user2.setEmailId("b@example.com");
+    user2.setPassword("securepwd".toCharArray());
+    user2.setPasswordStatus(Constants.INACTIVE);
+    user2.setSession(Constants.INACTIVE);
+
+    user3 = new User();
+    user3.setFullName("CAT");
+    user3.setMobileNumber("9876543210");
+    user3.setEmailId("c@example.com");
+    user3.setPassword("oldPassword3".toCharArray());
+    user3.setPasswordStatus(Constants.ACTIVE);
+    user3.setSession(Constants.ACTIVE);
+
     users = new ArrayList<>();
     users.add(user1);
     users.add(user2);
@@ -94,7 +94,7 @@ class RegisterServiceTest {
     user.setFullName("Ganya HT");
     user.setEmailId("g@gmail.com");
     user.setPassword("password".toCharArray());
-    user.setStatus(Constants.ACTIVE);
+    user.setPasswordStatus(Constants.ACTIVE);
 
     logoutUser = new User();
     logoutUser.setUserId(1L);
@@ -102,7 +102,7 @@ class RegisterServiceTest {
     logoutUser.setFullName("Ganya HT");
     logoutUser.setEmailId("g@gmail.com");
     logoutUser.setPassword("password".toCharArray());
-    logoutUser.setStatus(Constants.ACTIVE);
+    logoutUser.setPasswordStatus(Constants.ACTIVE);
     logoutUser.setSession(Constants.ACTIVE);
 
     responseDto = new RegisterResponseDto();
@@ -219,7 +219,7 @@ class RegisterServiceTest {
     existingUser.setPassword("encodedOldPassword".toCharArray());
     existingUser.setFullName("Test User");
     existingUser.setMobileNumber("1234567890");
-    existingUser.setStatus("ACTIVE");
+    existingUser.setPasswordStatus("ACTIVE");
 
     when(mockRepo.findByEmailIdAndStatusActive(forgotPassword.getEmailId()))
         .thenReturn(Optional.of(existingUser));
@@ -235,17 +235,17 @@ class RegisterServiceTest {
     savedUser.setPassword("encodedNewPassword".toCharArray());
     savedUser.setFullName("Test User");
     savedUser.setMobileNumber("1234567890");
-    savedUser.setStatus("ACTIVE");
+    savedUser.setPasswordStatus("ACTIVE");
 
     when(mockRepo.save(any(User.class))).thenReturn(savedUser);
 
     String result = registerService.forgotPassword(forgotPassword);
 
     assertEquals("Password change successful", result);
-    assertEquals("INACTIVE", existingUser.getStatus());
+    assertEquals(Constants.INACTIVE, existingUser.getPasswordStatus());
     assertEquals(savedUser.getEmailId(), forgotPassword.getEmailId());
     assertEquals("encodedNewPassword", new String(savedUser.getPassword()));
-    assertEquals("ACTIVE", savedUser.getStatus());
+    assertEquals(Constants.ACTIVE, savedUser.getPasswordStatus());
     assertEquals("Test User", savedUser.getFullName());
     assertEquals("1234567890", savedUser.getMobileNumber());
   }
@@ -305,30 +305,17 @@ class RegisterServiceTest {
     when(mockEncryptDecrypt.decode(anyString())).thenReturn(logoutUser.getPassword());
     when(mockRepo.findByEmailIdAndStatusActive(loginDto.getEmailId()))
         .thenReturn(Optional.of(logoutUser));
-    assertEquals(Constants.LOGGED_OUT, registerService.logoutUser(loginDto));
+    when(mockRepo.save(user1)).thenReturn(user1);
+    assertEquals(Constants.LOGGED_OUT, registerService.logoutUser(loginDto.getEmailId()));
   }
 
   @Test
   void logout_EmailNotFoundException() {
-
     when(mockRepo.findByEmailIdAndStatusActive(loginDto.getEmailId())).thenReturn(Optional.empty());
     assertThrows(
         EmailNotFoundException.class,
         () -> {
-          registerService.logoutUser(loginDto);
-        });
-  }
-
-  @Test
-  void logout_Password_Not_Matching() {
-
-    LoginDto dto = new LoginDto("g@gmail.com", "password5".toCharArray());
-
-    when(mockRepo.findByEmailIdAndStatusActive(dto.getEmailId())).thenReturn(Optional.of(user3));
-    assertThrows(
-        PasswordsNotMatchingException.class,
-        () -> {
-          registerService.logoutUser(dto);
+          registerService.logoutUser(loginDto.getEmailId());
         });
   }
 
@@ -339,6 +326,8 @@ class RegisterServiceTest {
 
     when(mockRepo.findByEmailIdAndStatusActive(loginDto.getEmailId()))
         .thenReturn(Optional.of(user1));
-    assertEquals(Constants.USER_ALREADY_LOGGED_OUT, registerService.logoutUser(loginDto));
+    when(mockRepo.save(user1)).thenReturn(user1);
+    assertEquals(
+        Constants.USER_ALREADY_LOGGED_OUT, registerService.logoutUser(loginDto.getEmailId()));
   }
 }

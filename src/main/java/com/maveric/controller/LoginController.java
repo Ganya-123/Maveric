@@ -6,16 +6,18 @@ import com.maveric.dto.RegisterRequestDto;
 import com.maveric.dto.RegisterResponseDto;
 import com.maveric.service.RegisterService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
 public class LoginController {
-  @Autowired private RegisterService service;
+  private final RegisterService service;
 
   @PostMapping("/register")
   public ResponseEntity<RegisterResponseDto> register(
@@ -36,9 +38,9 @@ public class LoginController {
     return ResponseEntity.status(HttpStatus.CREATED).body(loginResponse);
   }
 
-  @PostMapping("/logout")
-  public ResponseEntity<String> userLogout(@Valid @RequestBody LoginDto loginDto) {
-    var loginResponse = service.logoutUser(loginDto);
-    return ResponseEntity.status(HttpStatus.ACCEPTED).body(loginResponse);
+  @PostMapping("/logout/{emailId}")
+  public ResponseEntity<String> userLogout(@PathVariable("emailId") String emailId) {
+    var loginResponse = service.logoutUser(emailId);
+    return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
   }
 }

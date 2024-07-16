@@ -64,7 +64,7 @@ class LoginControllerTest {
     user.setFullName("Ganya HT");
     user.setEmailId("g@gmail.com");
     user.setPassword("password".toCharArray());
-    user.setStatus("ACTIVE");
+    user.setPasswordStatus("ACTIVE");
 
     RegisterResponseDto responseDto = new RegisterResponseDto();
     responseDto.setEmailId(user.getEmailId());
@@ -84,6 +84,17 @@ class LoginControllerTest {
 
     assertThrows(
         EmailAlreadyExistsException.class,
+        () -> {
+          controller.register(requestDto);
+        });
+  }
+
+  @Test
+  void register_EmailMappingError() {
+    when(service.registerUser(requestDto)).thenThrow(new RuntimeException("Mapping error"));
+
+    assertThrows(
+        RuntimeException.class,
         () -> {
           controller.register(requestDto);
         });
@@ -189,41 +200,16 @@ class LoginControllerTest {
 
   @Test
   void logout_user() {
-    User user = new User();
-    user.setEmailId(loginDto.getEmailId());
-    user.setPassword(loginDto.getPassword());
-    user.setFullName("Ganya HT");
-    user.setMobileNumber("1234567890");
-    user.setSession(Constants.ACTIVE);
 
-    when(service.logoutUser(loginDto)).thenReturn(Constants.LOGGED_OUT);
-    assertEquals(Constants.LOGGED_OUT, controller.userLogout(loginDto).getBody());
+    when(service.logoutUser(loginDto.getEmailId())).thenReturn(Constants.LOGGED_OUT);
+    assertEquals(Constants.LOGGED_OUT, controller.userLogout(loginDto.getEmailId()).getBody());
   }
 
   @Test
   void logout_user_failure1() {
-    User user = new User();
-    user.setEmailId(loginDto.getEmailId());
-    user.setPassword(loginDto.getPassword());
-    user.setFullName("Ganya HT");
-    user.setMobileNumber("1234567890");
-    user.setSession(Constants.INACTIVE);
 
-    when(service.logoutUser(loginDto)).thenReturn(Constants.USER_ALREADY_LOGGED_OUT);
-    assertEquals(Constants.USER_ALREADY_LOGGED_OUT, controller.userLogout(loginDto).getBody());
-  }
-
-  @Test
-  void logout_user_failure2() {
-    User user = new User();
-    user.setEmailId(loginDto.getEmailId());
-    user.setPassword(loginDto.getPassword());
-    user.setFullName("Ganya HT");
-    user.setMobileNumber("1234567890");
-    user.setSession(Constants.INACTIVE);
-
-    when(service.logoutUser(loginDto))
-        .thenThrow(new PasswordsNotMatchingException("Passwords are not matching"));
-    assertThrows(PasswordsNotMatchingException.class, () -> controller.userLogout(loginDto));
+    when(service.logoutUser(loginDto.getEmailId())).thenReturn(Constants.USER_ALREADY_LOGGED_OUT);
+    assertEquals(
+        Constants.USER_ALREADY_LOGGED_OUT, controller.userLogout(loginDto.getEmailId()).getBody());
   }
 }

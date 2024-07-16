@@ -4,7 +4,6 @@ import com.maveric.dto.ErrorDto;
 import com.maveric.exceptions.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -72,9 +71,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorDto> handleValidationExceptions(MethodArgumentNotValidException ex) {
     List<String> errors =
-        ex.getBindingResult().getFieldErrors().stream()
-            .map(FieldError::getDefaultMessage)
-            .collect(Collectors.toList());
+        ex.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage).toList();
     ErrorDto errorDto = new ErrorDto(HttpStatus.BAD_REQUEST, "Validation failed", errors);
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDto);
   }
