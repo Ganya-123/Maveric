@@ -82,18 +82,18 @@ class TransactionServiceTest {
   void addTransaction_UserNotLoggedInException() {
     TransactionDto transactionDto = new TransactionDto(500L, 1L);
 
-    User user = new User();
-    user.setUserId(1L);
-    user.setMobileNumber("9876543210");
-    user.setFullName("Ganya HT");
-    user.setEmailId("g@gmail.com");
-    user.setPassword("password".toCharArray());
-    user.setPasswordStatus(Constants.ACTIVE);
-    user.setSession(Constants.INACTIVE);
+    User logoutUser = new User();
+    logoutUser.setUserId(1L);
+    logoutUser.setMobileNumber("9876543210");
+    logoutUser.setFullName("Ganya HT");
+    logoutUser.setEmailId("g@gmail.com");
+    logoutUser.setPassword("password".toCharArray());
+    logoutUser.setPasswordStatus(Constants.ACTIVE);
+    logoutUser.setSession(Constants.INACTIVE);
 
     Transaction transaction = new Transaction(1L, 500L, user);
 
-    when(registerRepo.findById(transactionDto.getUserId())).thenReturn(Optional.of(user));
+    when(registerRepo.findById(transactionDto.getUserId())).thenReturn(Optional.of(logoutUser));
     when(transactionRepo.save(transaction)).thenReturn(transaction);
 
     UserNotLoggedInException exception =

@@ -11,10 +11,7 @@ import com.maveric.dto.LoginDto;
 import com.maveric.dto.RegisterRequestDto;
 import com.maveric.dto.RegisterResponseDto;
 import com.maveric.entity.User;
-import com.maveric.exceptions.EmailAlreadyExistsException;
-import com.maveric.exceptions.EmailNotFoundException;
-import com.maveric.exceptions.PasswordRepetitionException;
-import com.maveric.exceptions.PasswordsNotMatchingException;
+import com.maveric.exceptions.*;
 import com.maveric.repo.RegisterRepo;
 import com.maveric.utils.EncryptDecrypt;
 import java.util.ArrayList;
@@ -209,29 +206,29 @@ class RegisterServiceTest {
 
   @Test
   void testForgotPassword_Success() {
-    ForgotPassword forgotPassword = new ForgotPassword();
-    forgotPassword.setEmailId("test@example.com");
-    forgotPassword.setNewPassword("newPassword".toCharArray());
-    forgotPassword.setConfirmPassword("newPassword".toCharArray());
+    ForgotPassword forgotPasword = new ForgotPassword();
+    forgotPasword.setEmailId("test@example.com");
+    forgotPasword.setNewPassword("newPassword".toCharArray());
+    forgotPasword.setConfirmPassword("newPassword".toCharArray());
 
     User existingUser = new User();
-    existingUser.setEmailId(forgotPassword.getEmailId());
+    existingUser.setEmailId(forgotPasword.getEmailId());
     existingUser.setPassword("encodedOldPassword".toCharArray());
     existingUser.setFullName("Test User");
     existingUser.setMobileNumber("1234567890");
     existingUser.setPasswordStatus("ACTIVE");
 
-    when(mockRepo.findByEmailIdAndStatusActive(forgotPassword.getEmailId()))
+    when(mockRepo.findByEmailIdAndStatusActive(forgotPasword.getEmailId()))
         .thenReturn(Optional.of(existingUser));
-    when(mockRepo.getUsersByEmailId(forgotPassword.getEmailId())).thenReturn(users);
-    when(mockEncryptDecrypt.encode(forgotPassword.getNewPassword()))
+    when(mockRepo.getUsersByEmailId(forgotPasword.getEmailId())).thenReturn(users);
+    when(mockEncryptDecrypt.encode(forgotPasword.getNewPassword()))
         .thenReturn("encodedNewPassword");
     when(mockEncryptDecrypt.decode("encodedOldPassword1")).thenReturn("oldPassword1".toCharArray());
     when(mockEncryptDecrypt.decode("encodedOldPassword2")).thenReturn("oldPassword2".toCharArray());
     when(mockEncryptDecrypt.decode("encodedOldPassword3")).thenReturn("oldPassword3".toCharArray());
 
     User savedUser = new User();
-    savedUser.setEmailId(forgotPassword.getEmailId());
+    savedUser.setEmailId(forgotPasword.getEmailId());
     savedUser.setPassword("encodedNewPassword".toCharArray());
     savedUser.setFullName("Test User");
     savedUser.setMobileNumber("1234567890");
@@ -239,15 +236,41 @@ class RegisterServiceTest {
 
     when(mockRepo.save(any(User.class))).thenReturn(savedUser);
 
-    String result = registerService.forgotPassword(forgotPassword);
+    String result = registerService.forgotPassword(forgotPasword);
 
     assertEquals("Password change successful", result);
     assertEquals(Constants.INACTIVE, existingUser.getPasswordStatus());
-    assertEquals(savedUser.getEmailId(), forgotPassword.getEmailId());
+    assertEquals(savedUser.getEmailId(), forgotPasword.getEmailId());
     assertEquals("encodedNewPassword", new String(savedUser.getPassword()));
     assertEquals(Constants.ACTIVE, savedUser.getPasswordStatus());
     assertEquals("Test User", savedUser.getFullName());
     assertEquals("1234567890", savedUser.getMobileNumber());
+  }
+
+  @Test
+  void test_Passwords_Not_Found() {
+    ForgotPassword forgotPasword = new ForgotPassword();
+    forgotPasword.setEmailId("test@example.com");
+    forgotPasword.setNewPassword("newPassword".toCharArray());
+    forgotPasword.setConfirmPassword("newPassword".toCharArray());
+
+    User existingUser = new User();
+    existingUser.setEmailId(forgotPasword.getEmailId());
+    existingUser.setPassword("encodedOldPassword".toCharArray());
+    existingUser.setFullName("Test User");
+    existingUser.setMobileNumber("1234567890");
+    existingUser.setPasswordStatus("ACTIVE");
+
+    List<User> emptyUser = new ArrayList<>();
+
+    when(mockRepo.findByEmailIdAndStatusActive(forgotPasword.getEmailId()))
+        .thenReturn(Optional.of(existingUser));
+    when(mockRepo.getUsersByEmailId(forgotPasword.getEmailId())).thenReturn(emptyUser);
+    assertThrows(
+        PasswordNotFoundException.class,
+        () -> {
+          registerService.forgotPassword(forgotPassword);
+        });
   }
 
   @Test

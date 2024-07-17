@@ -78,6 +78,18 @@ class LoginControllerIntegrationTest {
   }
 
   @Test
+  void registerUser_validation_failure() throws Exception {
+    RegisterRequestDto emptyRequest = new RegisterRequestDto();
+    mockMvc
+        .perform(
+            post("/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(emptyRequest)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Validation failed"));
+  }
+
+  @Test
   void registerUserWithExistingEmail() throws Exception {
 
     when(registerService.registerUser(any(RegisterRequestDto.class)))
