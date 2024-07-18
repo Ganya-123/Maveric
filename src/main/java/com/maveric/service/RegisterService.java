@@ -29,17 +29,16 @@ public class RegisterService {
             user -> {
               throw new EmailAlreadyExistsException("Email already exists");
             });
-    User user = mapper.map(request, User.class);
+    var user = mapper.map(request, User.class);
     user.setPasswordStatus(Constants.ACTIVE);
     user.setSession(Constants.INACTIVE);
     user.setPassword(encryptDecrypt.encode(request.getPassword()).toCharArray());
-    User userResponse = repo.save(user);
+    var userResponse = repo.save(user);
     return mapper.map(userResponse, RegisterResponseDto.class);
   }
 
-
   public String loginUser(LoginDto loginDto) {
-    User user =
+    var user =
         repo.findByEmailIdAndStatusActive(loginDto.getEmailId())
             .orElseThrow(() -> new EmailNotFoundException(Constants.EMAIL_ID_NOT_FOUND));
 
@@ -54,9 +53,8 @@ public class RegisterService {
     }
   }
 
-
   public String forgotPassword(ForgotPassword forgotPassword) {
-    User user =
+    var user =
         repo.findByEmailIdAndStatusActive(forgotPassword.getEmailId())
             .orElseThrow(() -> new EmailNotFoundException(Constants.EMAIL_ID_NOT_FOUND));
 
@@ -73,7 +71,7 @@ public class RegisterService {
     user.setPasswordStatus(Constants.INACTIVE);
     repo.save(user);
 
-    User newUser = new User();
+    var newUser = new User();
     newUser.setEmailId(user.getEmailId());
     newUser.setPassword(encryptDecrypt.encode(forgotPassword.getNewPassword()).toCharArray());
     newUser.setPasswordStatus(Constants.ACTIVE);
@@ -85,9 +83,8 @@ public class RegisterService {
     return Constants.PASSWORD_CHANGE_SUCCESSFUL;
   }
 
-
   public String logoutUser(String emailId) {
-    User user =
+    var user =
         repo.findByEmailIdAndStatusActive(emailId)
             .orElseThrow(() -> new EmailNotFoundException(Constants.EMAIL_ID_NOT_FOUND));
 

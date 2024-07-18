@@ -22,7 +22,7 @@ public class TransactionService {
   private final ModelMapper mapper;
 
   public TransactionDto addTransaction(TransactionDto request) {
-    User user =
+    var user =
         registerRepo
             .findById(request.getUserId())
             .orElseThrow(() -> new UserIdNotFoundException("Id not found"));

@@ -57,7 +57,7 @@ class LoginControllerIntegrationTest {
 
   @Test
   void registerUser() throws Exception {
-    RegisterResponseDto responseDto = new RegisterResponseDto();
+    var responseDto = new RegisterResponseDto();
     responseDto.setUserId(1L);
     responseDto.setFullName("John Doe");
     responseDto.setMobileNumber("1234567890");
@@ -79,7 +79,7 @@ class LoginControllerIntegrationTest {
 
   @Test
   void registerUser_validation_failure() throws Exception {
-    RegisterRequestDto emptyRequest = new RegisterRequestDto();
+    var emptyRequest = new RegisterRequestDto();
     mockMvc
         .perform(
             post("/register")

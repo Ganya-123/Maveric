@@ -58,7 +58,7 @@ class RegisterServiceTest {
     user1.setPasswordStatus(Constants.INACTIVE);
     user1.setSession(Constants.INACTIVE);
 
-    User user2 = new User();
+    var user2 = new User();
     user2.setFullName("BHARAT");
     user2.setMobileNumber("9876543210");
     user2.setEmailId("b@example.com");
@@ -206,12 +206,12 @@ class RegisterServiceTest {
 
   @Test
   void testForgotPassword_Success() {
-    ForgotPassword forgotPasword = new ForgotPassword();
+    var forgotPasword = new ForgotPassword();
     forgotPasword.setEmailId("test@example.com");
     forgotPasword.setNewPassword("newPassword".toCharArray());
     forgotPasword.setConfirmPassword("newPassword".toCharArray());
 
-    User existingUser = new User();
+    var existingUser = new User();
     existingUser.setEmailId(forgotPasword.getEmailId());
     existingUser.setPassword("encodedOldPassword".toCharArray());
     existingUser.setFullName("Test User");
@@ -227,7 +227,7 @@ class RegisterServiceTest {
     when(mockEncryptDecrypt.decode("encodedOldPassword2")).thenReturn("oldPassword2".toCharArray());
     when(mockEncryptDecrypt.decode("encodedOldPassword3")).thenReturn("oldPassword3".toCharArray());
 
-    User savedUser = new User();
+    var savedUser = new User();
     savedUser.setEmailId(forgotPasword.getEmailId());
     savedUser.setPassword("encodedNewPassword".toCharArray());
     savedUser.setFullName("Test User");
@@ -249,12 +249,12 @@ class RegisterServiceTest {
 
   @Test
   void test_Passwords_Not_Found() {
-    ForgotPassword forgotPasword = new ForgotPassword();
+    var forgotPasword = new ForgotPassword();
     forgotPasword.setEmailId("test@example.com");
     forgotPasword.setNewPassword("newPassword".toCharArray());
     forgotPasword.setConfirmPassword("newPassword".toCharArray());
 
-    User existingUser = new User();
+    var existingUser = new User();
     existingUser.setEmailId(forgotPasword.getEmailId());
     existingUser.setPassword("encodedOldPassword".toCharArray());
     existingUser.setFullName("Test User");
@@ -288,7 +288,7 @@ class RegisterServiceTest {
 
   @Test
   void testForgotPassword_PasswordsDoNotMatch() {
-    ForgotPassword forgotPassword = new ForgotPassword();
+    var forgotPassword = new ForgotPassword();
     forgotPassword.setEmailId("test@example.com");
     forgotPassword.setNewPassword("newPassword1".toCharArray());
     forgotPassword.setConfirmPassword("newPassword2".toCharArray());

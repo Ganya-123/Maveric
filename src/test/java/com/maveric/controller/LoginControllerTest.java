@@ -58,7 +58,7 @@ class LoginControllerTest {
 
   @Test
   void register() {
-    User user = new User();
+    var user = new User();
     user.setUserId(1L);
     user.setMobileNumber("9876543210");
     user.setFullName("Ganya HT");
@@ -66,7 +66,7 @@ class LoginControllerTest {
     user.setPassword("password".toCharArray());
     user.setPasswordStatus("ACTIVE");
 
-    RegisterResponseDto responseDto = new RegisterResponseDto();
+    var responseDto = new RegisterResponseDto();
     responseDto.setEmailId(user.getEmailId());
     responseDto.setFullName(user.getFullName());
     responseDto.setMobileNumber(user.getMobileNumber());

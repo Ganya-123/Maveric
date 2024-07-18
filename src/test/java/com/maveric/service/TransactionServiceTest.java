@@ -82,7 +82,7 @@ class TransactionServiceTest {
   void addTransaction_UserNotLoggedInException() {
     TransactionDto transactionDto = new TransactionDto(500L, 1L);
 
-    User logoutUser = new User();
+    var logoutUser = new User();
     logoutUser.setUserId(1L);
     logoutUser.setMobileNumber("9876543210");
     logoutUser.setFullName("Ganya HT");
